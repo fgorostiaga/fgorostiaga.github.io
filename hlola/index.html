@@ -1,1 +1,112 @@
-Hello, world!
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HLola specifications</title>
+  <meta name="description" content="HLola specifications">
+</head>
+
+<body>
+  <h1>HLola specifications</h1>
+  <p id="spec1">Specification 1.</p>
+  <span style="font-family:monospace">
+<span style="color:#1944a8;font-weight: bold;">format JSON</span><br/>
+<span style="font-weight: bold;">use theory </span><span style="font-weight: bold;color:#e69e22">Geometry2D</span><br/>
+<span style="font-weight: bold;">use library </span><span style="font-weight: bold;color:#e69e22">Utils</span><br/>
+<span style="font-weight: bold;">use haskell </span><span style="font-weight: bold;color:#e69e22">Data.Maybe</span><br/>
+<span style="font-weight: bold;">use haskell </span><span style="font-weight: bold;color:#e69e22">Data.List</span><br/>
+<br/>
+<span style="color:#888888;"><br/>
+#HASKELL<br/>
+data Attitude = Attitude {yaw :: Double, roll :: Double, pitch :: Double} deriving (Show,Generic,Read,FromJSON,ToJSON)<br/>
+data Target = Target {x :: Double, y :: Double, mutex :: Double, num_wp :: Double} deriving (Show,Generic,Read,FromJSON,ToJSON)<br/>
+data Position = Position {x :: Double, y :: Double, alt :: Double, zone :: Double} deriving (Show,Generic,Read,FromJSON,ToJSON)<br/>
+#ENDOFHASKELL<br/>
+</span><br/>
+<br/>
+<span style="color:#888888">-- Input streams</span><br/>
+<br/>
+<span style="color:#ff0000;">input</span> <span style="color: #136e61;font-weight: bold;">Attitude</span> <span style="color: #fa0fa0;font-weight: bold;">attitude</span><br/>
+<br/>
+<span style="color:#ff0000;">input</span> <span style="color: #136e61;font-weight: bold;">Vector2</span> <span style="color: #fa0fa0;font-weight: bold;">velocity</span><br/>
+<br/>
+<span style="color:#ff0000;">input</span> <span style="color: #136e61;font-weight: bold;">Position</span> <span style="color: #fa0fa0;font-weight: bold;">position</span><br/>
+<br/>
+<span style="color:#ff0000;">input</span> <span style="color: #136e61;font-weight: bold;">Double</span> <span style="color: #fa0fa0;font-weight: bold;">altitude</span><br/>
+<br/>
+<span style="color:#ff0000;">input</span> <span style="color: #136e61;font-weight: bold;">Target</span> <span style="color: #fa0fa0;font-weight: bold;">target</span><br/>
+<br/>
+<span style="color:#ff0000;">input</span> <span style="color: #136e61;font-weight: bold;">[[[Double]]]</span> <span style="color: #fa0fa0;font-weight: bold;">nofly</span><br/>
+<br/>
+<span style="color:#ff0000;">input</span> <span style="color: #136e61;font-weight: bold;">[String]</span> <span style="color: #fa0fa0;font-weight: bold;">events_within</span><br/>
+<br/>
+<span style="color:#888888">-- Output streams</span><br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">capturing</span> <span style="font-weight: bold;">=</span> <span style="color:#1c21b8">let</span><br/>
+&nbsp;&nbsp;has_capture = <span style="color:#FF4500;font-weight: bold;">&#39;</span>(elem &#34;capture&#34;) (events_within <span style="font-weight: bold;">[now]</span>)<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">in</span> has_capture || open_capture <span style="font-weight: bold;">[</span>-1<span style="font-weight: bold;">|</span><span style="color:#FF4500;font-weight: bold;">&#39;</span>False<span style="font-weight: bold;">]</span><br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">open_capture</span> <span style="font-weight: bold;">=</span> <span style="color:#1c21b8">let</span><br/>
+&nbsp;&nbsp;relevant_events = <span style="color:#FF4500;font-weight: bold;">&#39;</span>(filter isrelevant) (events_within <span style="font-weight: bold;">[now]</span>)<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">in</span> <span style="color:#FF4500;">2</span><span style="color:#FF4500;font-weight: bold;">&#39;</span>lastIsCapture (open_capture <span style="font-weight: bold;">[</span>-1<span style="font-weight: bold;">|</span><span style="color:#FF4500;font-weight: bold;">&#39;</span>False<span style="font-weight: bold;">]</span>) relevant_events<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">where</span><br/>
+&nbsp;&nbsp;lastIsCapture dflt [] = dflt<br/>
+&nbsp;&nbsp;lastIsCapture _ xs = last xs == &#34;capture&#34;<br/>
+&nbsp;&nbsp;isrelevant = flip elem [&#34;capture&#34;, &#34;yes_person&#34;, &#34;no_person&#34;]<br/>
+<br/>
+<span style="color:#888888">-- x_filt[i] = ( x[i] + tau * ( - x_filt[i-2] / 2 + 2 * x_filt[i-1] ) ) / (1.5* tau + 1)</span><br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Double</span> <span style="color: #fa0fa0;font-weight: bold;">filtered_pos_component</span> <span style="font-weight: bold;"><</span><span style="color: #136e61;font-weight: bold;">(Position -&gt; Double)</span> <span style="color: #96325d;font-weight: bold;">accessor</span><span style="font-weight: bold;">></span> <span style="font-weight: bold;"><</span><span style="color: #136e61;font-weight: bold;">String</span> <span style="color: #96325d;font-weight: bold;">nm</span><span style="font-weight: bold;">></span> <span style="font-weight: bold;">=</span> <span style="color:#1c21b8">let</span><br/>
+&nbsp;&nbsp;dt = 0.1<br/>
+&nbsp;&nbsp;tau = 6*dt<br/>
+&nbsp;&nbsp;_this = filtered_pos_component accessor nm<br/>
+&nbsp;&nbsp;nowcomp = <span style="color:#FF4500;font-weight: bold;">&#39;</span>accessor (position<span style="font-weight: bold;">[now]</span>)<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">in</span> <span style="color:#1c21b8">if</span> instantN<span style="font-weight: bold;">[now]</span> &lt; 3 <span style="color:#1c21b8">then</span> nowcomp <span style="color:#1c21b8">else</span> (nowcomp + tau * (2 * _this <span style="font-weight: bold;">[</span>-1<span style="font-weight: bold;">|</span>0<span style="font-weight: bold;">]</span> - _this <span style="font-weight: bold;">[</span>-2<span style="font-weight: bold;">|</span>0<span style="font-weight: bold;">]</span> / 2)) / (1.5 * tau + 1)<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Double</span> <span style="color: #fa0fa0;font-weight: bold;">filtered_pos_x</span> <span style="font-weight: bold;">=</span> filtered_pos_component x &#34;x&#34; <span style="font-weight: bold;">[now]</span><br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Double</span> <span style="color: #fa0fa0;font-weight: bold;">filtered_pos_y</span> <span style="font-weight: bold;">=</span> filtered_pos_component y &#34;y&#34; <span style="font-weight: bold;">[now]</span><br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Double</span> <span style="color: #fa0fa0;font-weight: bold;">filtered_pos_alt</span> <span style="font-weight: bold;">=</span> filtered_pos_component alt &#34;alt&#34; <span style="font-weight: bold;">[now]</span><br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Point2</span> <span style="color: #fa0fa0;font-weight: bold;">filtered_pos</span> <span style="font-weight: bold;">=</span> <span style="color:#FF4500;font-weight: bold;">&#39;</span>P (filtered_pos_x <span style="font-weight: bold;">[now]</span>) (filtered_pos_y <span style="font-weight: bold;">[now]</span>)<br/>
+<br/>
+<span style="color:#888888">-- Problem with too toolLifts in the same expression</span><br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">near</span> <span style="font-weight: bold;">=</span> <span style="color:#FF4500;">2</span><span style="color:#FF4500;font-weight: bold;">&#39;</span>distance (filtered_pos <span style="font-weight: bold;">[now]</span>) target_pos &lt; 1<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">where</span> <br/>
+&nbsp;&nbsp;targetToPoint (Target x y _ _) = P x y<br/>
+&nbsp;&nbsp;target_pos = <span style="color:#FF4500;font-weight: bold;">&#39;</span>targetToPoint (target <span style="font-weight: bold;">[now]</span>)<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">height_ok</span> <span style="font-weight: bold;">=</span> filtered_pos_alt <span style="font-weight: bold;">[now]</span> &gt; 0<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">roll_ok</span> <span style="font-weight: bold;">=</span> <span style="color:#FF4500;font-weight: bold;">&#39;</span>(abs.roll) (attitude <span style="font-weight: bold;">[now]</span>) &lt; 0.0523<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">pitch_ok</span> <span style="font-weight: bold;">=</span> <span style="color:#FF4500;font-weight: bold;">&#39;</span>(abs.pitch) (attitude<span style="font-weight: bold;">[now]</span>) &lt; 0.0523<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">all_ok_capturing</span> <span style="font-weight: bold;">=</span> capturing <span style="font-weight: bold;">[now]</span> `implies` <br/>
+&nbsp;&nbsp;(height_ok <span style="font-weight: bold;">[now]</span> &amp;&amp; near <span style="font-weight: bold;">[now]</span> &amp;&amp; roll_ok <span style="font-weight: bold;">[now]</span> &amp;&amp; pitch_ok <span style="font-weight: bold;">[now]</span>)<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">[Polygon]</span> <span style="color: #fa0fa0;font-weight: bold;">no_fly_polys</span> <span style="font-weight: bold;">=</span> no_fly_polys <span style="font-weight: bold;">[</span>-1<span style="font-weight: bold;">|</span><span style="color:#FF4500;font-weight: bold;">&#39;</span>(map.map$createPoint) (nofly <span style="font-weight: bold;">[now<span style="font-weight: bold;">]</span></span>)]<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">where</span><br/>
+&nbsp;&nbsp;createPoint [x,y] = P x y<br/>
+<br/>
+<span style="color:#888888">-- We assume that no-fly zones are non-overlapping</span><br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">(Maybe Polygon)</span> <span style="color: #fa0fa0;font-weight: bold;">flying_in_poly</span> <span style="font-weight: bold;">=</span> <span style="color:#1c21b8">let</span><br/>
+&nbsp;&nbsp;position_in_poly = <span style="color:#FF4500;font-weight: bold;">&#39;</span>pointInPoly (filtered_pos <span style="font-weight: bold;">[now]</span>)<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">in</span><br/>
+&nbsp;&nbsp;<span style="color:#FF4500;">2</span><span style="color:#FF4500;font-weight: bold;">&#39;</span>find position_in_poly (no_fly_polys<span style="font-weight: bold;">[now]</span>)<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">flying_in_safe_zones</span> <span style="font-weight: bold;">=</span> <span style="color:#FF4500;font-weight: bold;">&#39;</span>isNothing (flying_in_poly<span style="font-weight: bold;">[now]</span>)<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">(Maybe Double)</span> <span style="color: #fa0fa0;font-weight: bold;">depth_into_poly</span> <span style="font-weight: bold;">=</span> <span style="color:#1c21b8">let</span><br/>
+&nbsp;&nbsp;mSides = <span style="color:#FF4500;font-weight: bold;">&#39;</span>(fmap polygonSides) (flying_in_poly<span style="font-weight: bold;">[now]</span>)<br/>
+&nbsp;&nbsp;distance_from_pos = <span style="color:#FF4500;font-weight: bold;">&#39;</span>shortestDist (filtered_pos<span style="font-weight: bold;">[now]</span>)<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">in</span> <span style="color:#FF4500;">2</span><span style="color:#FF4500;font-weight: bold;">&#39;</span>fmap distance_from_pos mSides<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">where</span><br/>
+&nbsp;&nbsp;shortestDist x = minimum.map (distancePointSegment x)<br/>
+</span>
+
+  <p id="spec2">Specification 2.</p>
+  Bla
+</body>
+</html>
