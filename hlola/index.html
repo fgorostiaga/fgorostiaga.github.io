@@ -9,7 +9,32 @@
 
 <body>
   <h1>HLola specifications</h1>
-  <p id="spec1">Specification 1.</p>
+  <ul>
+    <li> <a href="#LTLEx">LTL Example</a></li>
+    <li> <a href="#uavspec1">UAV Spec 1</a></li>
+</ul>
+  <p id="LTLEx">Specification 1: LTL Example.</p>
+<span style="font-family:monospace">
+<span style="color:#1944a8;font-weight: bold;">format CSV</span><br/>
+<span style="font-weight: bold;">use library </span><span style="font-weight: bold;color:#e69e22">LTL</span><br/>
+<br/>
+<span style="color:#888888;"><br/>
+#HASKELL<br/>
+data SenderState = Get | Send | WaitForAck deriving (Generic,Read,FromJSON,Eq)<br/>
+#ENDOFHASKELL<br/>
+</span><br/>
+<br/>
+<span style="color:#ff0000;">input</span> <span style="color: #136e61;font-weight: bold;">SenderState</span> <span style="color: #fa0fa0;font-weight: bold;">senderState</span><br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">senderNotWaiting</span> <span style="font-weight: bold;">=</span> senderState<span style="font-weight: bold;">[now]</span> /== <span style="color:#FF4500;font-weight: bold;">&#39;</span>WaitForAck<br/>
+<br/>
+<span style="font-weight: bold;">output</span> <span style="color: #136e61;font-weight: bold;">Bool</span> <span style="color: #fa0fa0;font-weight: bold;">prop</span> <span style="font-weight: bold;">=</span> <span style="color:#1c21b8">let</span><br/>
+&nbsp;&nbsp;senderWaitingAck = senderState<span style="font-weight: bold;">[now]</span> === <span style="color:#FF4500;font-weight: bold;">&#39;</span>WaitForAck<br/>
+&nbsp;&nbsp;startedWaiting = yesterday (historically senderNotWaiting)<br/>
+&nbsp;&nbsp;<span style="color:#1c21b8">in</span> senderWaitingAck `implies` startedWaiting<span style="font-weight: bold;">[now]</span><br/>
+<br/>
+</span>
+  <p id="uavspec1">UAV Spec 1.</p>
   <span style="font-family:monospace">
 <span style="color:#1944a8;font-weight: bold;">format JSON</span><br/>
 <span style="font-weight: bold;">use theory </span><span style="font-weight: bold;color:#e69e22">Geometry2D</span><br/>
@@ -106,7 +131,7 @@ data Position = Position {x :: Double, y :: Double, alt :: Double, zone :: Doubl
 &nbsp;&nbsp;shortestDist x = minimum.map (distancePointSegment x)<br/>
 </span>
 
-  <p id="spec2">Specification 2.</p>
+  <p id="uavspec2">Specification 2.</p>
   Bla
 </body>
 </html>
