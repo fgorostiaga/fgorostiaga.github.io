@@ -1,1 +1,67 @@
-Hi
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="page.css">
+</head>
+
+<button class="accordion">Section 1</button>
+<div class="panel">
+  <!-- Tab links -->
+  <div class="tab">
+    <button class="tablinks" onclick="openCity(event, 'London')">London</button>
+    <button class="tablinks" onclick="openCity(event, 'Paris')">Paris</button>
+    <button class="tablinks" onclick="openCity(event, 'Tokyo')">Tokyo</button>
+  </div>
+
+  <!-- Tab content -->
+  <div id="London" class="tabcontent">
+    <h3>London</h3>
+    <p>London is the capital city of England.</p>
+  </div>
+
+  <div id="Paris" class="tabcontent">
+    <h3>Paris</h3>
+    <p>Paris is the capital of France.</p>
+  </div>
+
+  <div id="Tokyo" class="tabcontent">
+    <h3>Tokyo</h3>
+    <p>Tokyo is the capital of Japan.</p>
+  </div>
+</div>
+
+<button class="accordion">Section 2</button>
+<div class="panel">
+  <!-- Tab links -->
+  <div class="tab">
+    <button class="tablinks" onclick="openCity(event, 'Concordia')">London</button>
+    <button class="tablinks" onclick="openCity(event, 'Venado')">Paris</button>
+    <button class="tablinks" onclick="openCity(event, 'Calamuchita')">Tokyo</button>
+  </div>
+
+  <!-- Tab content -->
+  <div id="Concordia" class="tabcontent">
+    <h3>Concordia</h3>
+    <p>Concordia is the capital city of England.</p>
+  </div>
+
+  <div id="Venado" class="tabcontent">
+    <h3>Venado Tuerto</h3>
+    <p>Venado Tuerto is the capital of France.</p>
+  </div>
+
+  <div id="Calamuchita" class="tabcontent">
+    <h3>Calamuchita</h3>
+    <p>Calamuchita is the capital of Japan.</p>
+  </div>
+</div>
+
+<button class="accordion">Section 3</button>
+<div class="panel">
+  <p>Lorem ipsum...</p>
+</div>
+
+<script src="page.js"></script>
+</body>
+</html>
