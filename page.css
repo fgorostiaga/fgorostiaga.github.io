@@ -65,3 +65,41 @@
     border: 1px solid #ccc;
     border-top: none;
 }
+
+.lcolumn, .rcolumn {
+    float: left;
+    width: 50%;
+    max-height: 300px;
+    overflow: auto;
+    counter-reset: line;
+}
+
+.rcolumn {
+    background-color: #ddd;
+}
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+
+.lcolumn .lineNum, .rcolumn .lineNum {
+    display: block;
+}
+
+.rcolumn .lineNum:before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    margin-right: .5em;
+}
+
+.lcolumn .lineNum:before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    margin-right: .5em;
+}
