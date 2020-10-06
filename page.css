@@ -92,14 +92,16 @@
 
 .rcolumn .lineNum:before {
     counter-increment: line;
-    content: counter(line);
+    content: counter(line,decimal-leading-zero);
     display: inline-block;
     margin-right: .5em;
+    color: brown;
 }
 
 .lcolumn .lineNum:before {
     counter-increment: line;
-    content: counter(line);
+    content: counter(line,decimal-leading-zero);
     display: inline-block;
     margin-right: .5em;
+    color: brown;
 }
