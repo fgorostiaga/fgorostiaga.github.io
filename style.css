@@ -62,12 +62,7 @@ img
     border : 1px solid #CCC;
 }
 
-#header
-{
-    margin : 0;
-}
-
-#content 
+#content
 {
     margin : 0;
     padding : 0;
@@ -118,28 +113,7 @@ img
     float : right;
 }
 
-#navcontainer
-{
-    background : #8EABC0;
-    padding : 10px 10px 10px 0;
-    text-align : right;
-    color : #EEE;
-}
-
-#navcontainer a:visited, 
-#navcontainer a:link
-{
-    text-decoration : none;
-    color : #EEE;
-}
-
-#navcontainer a:hover
-{
-    text-decoration : underline;
-    color : #FFF;
-}
-
-#myname 
+#myname
 {
     padding : 10px 0 0 0;
     font-weight : bold;
